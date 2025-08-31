@@ -71,7 +71,7 @@ Generate a ready-to-use theme package containing:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/omarchy-theme-builder.git
+git clone https://github.com/gitcoder89431/omarchy-theme-builder.git
 cd omarchy-theme-builder
 
 # Install dependencies
