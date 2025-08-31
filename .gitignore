@@ -1,0 +1,43 @@
+# Node modules
+node_modules/
+
+# Build output
+.svelte-kit/
+build/
+dist/
+output/
+
+# Static build artifacts
+*.log
+*.tsbuildinfo
+
+# Vite cache
+.vite/
+
+# SvelteKit output
+.svelte-kit/
+
+# Mac system files
+.DS_Store
+
+# Env files
+.env
+.env.*
+
+# IDE files
+.vscode/
+.idea/
+
+# TypeScript
+*.tsbuildinfo
+
+# Coverage
+coverage/
+
+# Misc
+*.local
+*.swp
+*.swo
+
+# SvelteKit types
+types/

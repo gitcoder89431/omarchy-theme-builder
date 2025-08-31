@@ -1,0 +1,242 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* CSS Variables for dynamic theming */
+:root {
+  --omarchy-bg: #191724;
+  --omarchy-fg: #e0def4;
+  --omarchy-accent: #c4a7e7;
+  --omarchy-muted: #6e6a86;
+  --omarchy-border: #26233a;
+  --omarchy-surface: #1f1d2e;
+  --omarchy-highlight: #403d52;
+  --omarchy-love: #eb6f92;
+  --omarchy-gold: #f6c177;
+  --omarchy-rose: #ebbcba;
+  --omarchy-pine: #31748f;
+  --omarchy-foam: #9ccfd8;
+  --omarchy-iris: #c4a7e7;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--omarchy-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--omarchy-muted);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--omarchy-accent);
+}
+
+/* Base styles */
+html {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+  background-color: var(--omarchy-bg);
+  color: var(--omarchy-fg);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Mono font for code/terminal areas */
+.font-mono {
+  font-family: 'JetBrains Mono', 'Fira Code', Monaco, Consolas, monospace;
+}
+
+/* Custom utilities */
+.glass {
+  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.text-shadow {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Animation utilities */
+.animate-typing {
+  animation: typing 2s steps(40, end) infinite;
+}
+
+@keyframes typing {
+  0% { width: 0; }
+  50% { width: 100%; }
+  100% { width: 0; }
+}
+
+/* Focus styles */
+.focus-visible:focus-visible {
+  outline: 2px solid var(--omarchy-accent);
+  outline-offset: 2px;
+}
+
+/* Custom button styles */
+.btn-primary {
+  background: var(--omarchy-accent);
+  color: var(--omarchy-bg);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: var(--omarchy-iris);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: var(--omarchy-surface);
+  color: var(--omarchy-fg);
+  border: 1px solid var(--omarchy-border);
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: var(--omarchy-highlight);
+  border-color: var(--omarchy-muted);
+}
+
+/* Window shadow */
+.window-shadow {
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* Notification styles */
+.notification {
+  backdrop-filter: blur(12px);
+  background: rgba(25, 23, 36, 0.9);
+  border: 1px solid var(--omarchy-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Desktop simulation styles */
+.desktop-bg {
+  background: linear-gradient(135deg, var(--omarchy-bg) 0%, var(--omarchy-surface) 100%);
+  min-height: 100vh;
+}
+
+.terminal-bg {
+  background: var(--omarchy-surface);
+  border: 1px solid var(--omarchy-border);
+}
+
+.panel-bg {
+  background: rgba(25, 23, 36, 0.95);
+  border-bottom: 1px solid var(--omarchy-border);
+  backdrop-filter: blur(8px);
+}
+
+/* Color picker styles */
+.color-picker-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 2px solid var(--omarchy-border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.color-picker-swatch:hover {
+  border-color: var(--omarchy-accent);
+  transform: scale(1.1);
+}
+
+/* Widget styles */
+.widget {
+  background: var(--omarchy-surface);
+  border: 1px solid var(--omarchy-border);
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+}
+
+.widget-header {
+  border-bottom: 1px solid var(--omarchy-border);
+  background: var(--omarchy-highlight);
+}
+
+/* Code editor styles */
+.code-editor {
+  background: var(--omarchy-surface);
+  border: 1px solid var(--omarchy-border);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.code-line-number {
+  color: var(--omarchy-muted);
+  user-select: none;
+  text-align: right;
+  padding-right: 1rem;
+  border-right: 1px solid var(--omarchy-border);
+}
+
+.code-keyword {
+  color: var(--omarchy-pine);
+  font-weight: 600;
+}
+
+.code-string {
+  color: var(--omarchy-gold);
+}
+
+.code-comment {
+  color: var(--omarchy-muted);
+  font-style: italic;
+}
+
+.code-function {
+  color: var(--omarchy-foam);
+}
+
+.code-variable {
+  color: var(--omarchy-rose);
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .desktop-controls {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --omarchy-border: #ffffff;
+    --omarchy-muted: #cccccc;
+  }
+}
