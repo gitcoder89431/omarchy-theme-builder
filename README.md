@@ -1,6 +1,6 @@
 # 🎨 Omarchy Theme Builder
 
-An interactive, real-time theme builder for the Omarchy Linux desktop environment. Create beautiful desktop themes with instant visual feedback and **full keyboard accessibility**, just like Realtime Colors but for your entire desktop.
+An interactive, real-time theme builder for the Omarchy Linux desktop environment. Create beautiful desktop themes with instant visual feedback and **full keyboard accessibility**.
 
 ![Omarchy Theme Builder](https://img.shields.io/badge/Omarchy-Theme%20Builder-blueviolet)
 ![SvelteKit](https://img.shields.io/badge/SvelteKit-FF3E00?logo=svelte&logoColor=white)
@@ -23,9 +23,8 @@ An interactive, real-time theme builder for the Omarchy Linux desktop environmen
 ## ✨ Features
 
 ### 🖥️ Authentic Desktop Simulation
-- **Pixel-perfect Omarchy/Hyprland desktop** preview in your browser
-- **Realistic system monitoring** with btop using authentic braille progress bars
-- **Sharp 90° corners** and ASCII-style borders matching real terminals
+- **Omarchy/Hyprland desktop** preview in your browser
+- **Realistic system monitoring** with btop using braille progress bars
 - **Interactive panels**: file manager (ranger-style), terminal, and system monitor
 - **Live system stats** with animated CPU cores, memory usage, and process lists
 
