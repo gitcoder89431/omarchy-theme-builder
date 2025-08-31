@@ -7,6 +7,69 @@
   let desktopRef;
   let currentTime = "";
 
+  // Fake btop data
+  let cpuCores = [
+    { name: "C0", usage: 45, temp: 52 },
+    { name: "C1", usage: 23, temp: 48 },
+    { name: "C2", usage: 67, temp: 55 },
+    { name: "C3", usage: 12, temp: 46 },
+    { name: "C4", usage: 34, temp: 49 },
+    { name: "C5", usage: 78, temp: 58 },
+    { name: "C6", usage: 19, temp: 45 },
+    { name: "C7", usage: 56, temp: 53 },
+  ];
+
+  let memUsage = { used: 6.8, total: 16.0, percent: 68 };
+  let swapUsage = { used: 0.2, total: 4.0, percent: 5 };
+
+  let processes = [
+    { pid: 1234, user: "root", cpu: 12.3, mem: 4.2, name: "hyprland" },
+    { pid: 5678, user: "user", cpu: 8.7, mem: 15.6, name: "firefox" },
+    { pid: 9012, user: "user", cpu: 4.1, mem: 2.1, name: "theme-builder" },
+    { pid: 3456, user: "user", cpu: 2.8, mem: 1.8, name: "waybar" },
+    { pid: 7890, user: "user", cpu: 1.9, mem: 3.4, name: "alacritty" },
+    { pid: 2468, user: "root", cpu: 0.8, mem: 0.9, name: "systemd" },
+    { pid: 1357, user: "user", cpu: 0.5, mem: 2.7, name: "nvim" },
+    { pid: 8642, user: "user", cpu: 0.3, mem: 1.2, name: "btop" },
+  ];
+
+  let networkUp = 1247;
+  let networkDown = 8492;
+
+  function updateBtopData() {
+    // Animate CPU cores
+    cpuCores = cpuCores.map((core) => ({
+      ...core,
+      usage: Math.max(5, Math.min(95, core.usage + (Math.random() - 0.5) * 10)),
+      temp: Math.max(40, Math.min(70, core.temp + (Math.random() - 0.5) * 3)),
+    }));
+
+    // Animate memory
+    memUsage.percent = Math.max(
+      50,
+      Math.min(85, memUsage.percent + (Math.random() - 0.5) * 5),
+    );
+    memUsage.used = (memUsage.percent / 100) * memUsage.total;
+
+    // Animate processes
+    processes = processes
+      .map((proc) => ({
+        ...proc,
+        cpu: Math.max(0, Math.min(20, proc.cpu + (Math.random() - 0.5) * 2)),
+        mem: Math.max(
+          0.1,
+          Math.min(20, proc.mem + (Math.random() - 0.5) * 0.5),
+        ),
+      }))
+      .sort((a, b) => b.cpu - a.cpu);
+
+    // Animate network
+    networkUp += (Math.random() - 0.5) * 200;
+    networkDown += (Math.random() - 0.5) * 500;
+    networkUp = Math.max(500, Math.min(5000, networkUp));
+    networkDown = Math.max(2000, Math.min(15000, networkDown));
+  }
+
   function updateTime() {
     const now = new Date();
     const days = [
@@ -39,9 +102,14 @@
     updateTime();
     const timeInterval = setInterval(updateTime, 1000);
 
-    // Cleanup interval on component destroy
+    // Update btop data every 500ms for smooth animation
+    updateBtopData();
+    const btopInterval = setInterval(updateBtopData, 500);
+
+    // Cleanup intervals on component destroy
     return () => {
       clearInterval(timeInterval);
+      clearInterval(btopInterval);
     };
   });
 </script>
@@ -77,39 +145,55 @@
       -webkit-backdrop-filter: blur(12px);
     "
   >
-    <!-- Left: Workspaces -->
-    <div class="flex items-center space-x-2">
+    <!-- Left: Waybar-style modules -->
+    <div class="flex items-center space-x-4">
+      <!-- Workspaces -->
       <div class="flex space-x-1">
         <div
-          class="w-6 h-6 flex items-center justify-center text-xs"
+          class="px-2 h-5 flex items-center justify-center text-xs"
           style="background: var(--omarchy-iris); color: var(--omarchy-bg);"
         >
           1
         </div>
         <div
-          class="w-6 h-6 flex items-center justify-center text-xs"
+          class="px-2 h-5 flex items-center justify-center text-xs"
           style="background: var(--omarchy-overlay); color: var(--omarchy-subtle);"
         >
           2
         </div>
         <div
-          class="w-6 h-6 flex items-center justify-center text-xs"
+          class="px-2 h-5 flex items-center justify-center text-xs"
           style="background: var(--omarchy-overlay); color: var(--omarchy-subtle);"
         >
           3
         </div>
         <div
-          class="w-6 h-6 flex items-center justify-center text-xs"
+          class="px-2 h-5 flex items-center justify-center text-xs"
           style="background: var(--omarchy-overlay); color: var(--omarchy-subtle);"
         >
           4
         </div>
         <div
-          class="w-6 h-6 flex items-center justify-center text-xs"
+          class="px-2 h-5 flex items-center justify-center text-xs"
           style="background: var(--omarchy-overlay); color: var(--omarchy-subtle);"
         >
           5
         </div>
+      </div>
+      <!-- Window title -->
+      <div class="flex items-center space-x-1">
+        <svg
+          class="w-3 h-3"
+          style="color: var(--omarchy-iris);"
+          fill="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M20,19V7H4V19H20M20,3A2,2 0 0,1 22,5V19A2,2 0 0,1 20,21H4A2,2 0 0,1 2,19V5C2,3.89 2.9,3 4,3H20M13,17V15H18V17H13M9.58,13L5.57,9H8.4L11.7,12.3C12.09,12.69 12.09,13.33 11.7,13.72L8.42,17H5.59L9.58,13Z"
+          />
+        </svg>
+        <span style="color: var(--omarchy-subtle);" class="text-xs">ranger</span
+        >
       </div>
     </div>
 
@@ -118,26 +202,50 @@
       {currentTime}
     </div>
 
-    <!-- Right: System Icons -->
-    <div
-      class="flex items-center space-x-2"
-      style="color: var(--omarchy-subtle);"
-    >
-      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-        <path
-          d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1L9 7V9H21M12 23C15.31 23 18 20.31 18 17H14L12 19L10 17H6C6 20.31 8.69 23 12 23Z"
-        />
-      </svg>
-      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-        <path
-          d="M17,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H17V18H20V8L12,13L4,8V18H7V20H4A2,2 0 0,1 2,18V6C2,4.89 2.9,4 4,4H7V6H4V6.5L12,11.5L20,6.5V6H17V4Z"
-        />
-      </svg>
-      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-        <path
-          d="M2,17H22V19H2V17M1.15,12.95L4,15.8L12,7.8L20,15.8L22.85,12.95L12,2.1L1.15,12.95Z"
-        />
-      </svg>
+    <!-- Right: System modules -->
+    <div class="flex items-center space-x-3 text-xs">
+      <!-- Network -->
+      <div class="flex items-center space-x-1">
+        <svg
+          class="w-3 h-3"
+          style="color: var(--omarchy-foam);"
+          fill="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M1,9L23,9V7L1,7V9M1,13L23,13V11L1,11V13M1,17L23,17V15L1,15V17Z"
+          />
+        </svg>
+        <span style="color: var(--omarchy-subtle);">wlan0</span>
+      </div>
+      <!-- Audio -->
+      <div class="flex items-center space-x-1">
+        <svg
+          class="w-3 h-3"
+          style="color: var(--omarchy-gold);"
+          fill="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.85 14,18.71V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z"
+          />
+        </svg>
+        <span style="color: var(--omarchy-subtle);">85%</span>
+      </div>
+      <!-- Battery -->
+      <div class="flex items-center space-x-1">
+        <svg
+          class="w-3 h-3"
+          style="color: var(--omarchy-pine);"
+          fill="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M16,20H8A2,2 0 0,1 6,18V6A2,2 0 0,1 8,4H11V2H13V4H16A2,2 0 0,1 18,6V18A2,2 0 0,1 16,20M8,6V18H16V6H8M10,16H14V8H10"
+          />
+        </svg>
+        <span style="color: var(--omarchy-subtle);">92%</span>
+      </div>
     </div>
   </div>
 
@@ -146,20 +254,20 @@
     class="main-layout flex h-full gap-2 p-2 relative z-10"
     style="height: calc(100vh - 2rem);"
   >
-    <!-- Left: File Manager -->
+    <!-- Left: Terminal File Manager (ranger-style) -->
     <div
       class="file-manager w-80 frosted-panel"
       style="
-        background: rgba(31, 29, 46, 0.85);
+        background: rgba(25, 23, 36, 0.9);
         border: 1px solid rgba(38, 35, 58, 0.5);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
       "
     >
-      <!-- File Manager Header -->
+      <!-- Ranger Header -->
       <div
         class="header h-8 flex items-center px-3 border-b text-xs"
-        style="background: rgba(64, 61, 82, 0.4); border-color: rgba(38, 35, 58, 0.3);"
+        style="background: rgba(64, 61, 82, 0.6); border-color: rgba(38, 35, 58, 0.3);"
       >
         <svg
           class="w-3 h-3 mr-2"
@@ -168,69 +276,105 @@
           viewBox="0 0 24 24"
         >
           <path
-            d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"
+            d="M20,19V7H4V19H20M20,3A2,2 0 0,1 22,5V19A2,2 0 0,1 20,21H4A2,2 0 0,1 2,19V5C2,3.89 2.9,3 4,3H20M13,17V15H18V17H13M9.58,13L5.57,9H8.4L11.7,12.3C12.09,12.69 12.09,13.33 11.7,13.72L8.42,17H5.59L9.58,13Z"
           />
         </svg>
-        <span style="color: var(--omarchy-fg);">~/.local/share/omarchy</span>
+        <span style="color: var(--omarchy-fg);" class="font-mono"
+          >ranger ~/.config/omarchy</span
+        >
       </div>
 
-      <!-- File List -->
-      <div class="file-list p-3 text-xs">
+      <!-- Ranger Content -->
+      <div class="ranger-content p-2 text-xs font-mono">
+        <!-- Status line -->
         <div
-          class="file-item flex items-center space-x-2 py-1"
-          style="color: var(--omarchy-fg);"
+          class="status-line mb-2 pb-1 border-b"
+          style="border-color: var(--omarchy-overlay);"
         >
-          <span>📁</span>
-          <span>bin</span>
+          <div class="flex justify-between">
+            <span style="color: var(--omarchy-subtle);"
+              >/home/user/.config/omarchy</span
+            >
+            <span style="color: var(--omarchy-muted);">12 items</span>
+          </div>
         </div>
-        <div
-          class="file-item flex items-center space-x-2 py-1"
-          style="color: var(--omarchy-fg);"
-        >
-          <span>📁</span>
-          <span>config</span>
+
+        <!-- File listing -->
+        <div class="file-list space-y-0">
+          <div class="flex">
+            <span style="color: var(--omarchy-muted);" class="w-8">drwx</span>
+            <span style="color: var(--omarchy-subtle);" class="w-12">user</span>
+            <span style="color: var(--omarchy-muted);" class="w-12">4.0K</span>
+            <span style="color: var(--omarchy-iris);" class="flex-1">../</span>
+          </div>
+          <div class="flex">
+            <span style="color: var(--omarchy-muted);" class="w-8">drwx</span>
+            <span style="color: var(--omarchy-subtle);" class="w-12">user</span>
+            <span style="color: var(--omarchy-muted);" class="w-12">4.0K</span>
+            <span style="color: var(--omarchy-foam);" class="flex-1">bin/</span>
+          </div>
+          <div class="flex">
+            <span style="color: var(--omarchy-muted);" class="w-8">drwx</span>
+            <span style="color: var(--omarchy-subtle);" class="w-12">user</span>
+            <span style="color: var(--omarchy-muted);" class="w-12">4.0K</span>
+            <span style="color: var(--omarchy-foam);" class="flex-1"
+              >config/</span
+            >
+          </div>
+          <div
+            class="flex bg-opacity-40"
+            style="background: var(--omarchy-highlight-med);"
+          >
+            <span style="color: var(--omarchy-muted);" class="w-8">drwx</span>
+            <span style="color: var(--omarchy-subtle);" class="w-12">user</span>
+            <span style="color: var(--omarchy-muted);" class="w-12">4.0K</span>
+            <span style="color: var(--omarchy-fg);" class="flex-1">themes/</span
+            >
+          </div>
+          <div class="flex pl-4">
+            <span style="color: var(--omarchy-muted);" class="w-8">drwx</span>
+            <span style="color: var(--omarchy-subtle);" class="w-12">user</span>
+            <span style="color: var(--omarchy-muted);" class="w-12">4.0K</span>
+            <span style="color: var(--omarchy-subtle);" class="flex-1"
+              >catppuccin/</span
+            >
+          </div>
+          <div class="flex pl-4">
+            <span style="color: var(--omarchy-muted);" class="w-8">drwx</span>
+            <span style="color: var(--omarchy-subtle);" class="w-12">user</span>
+            <span style="color: var(--omarchy-muted);" class="w-12">4.0K</span>
+            <span style="color: var(--omarchy-iris);" class="flex-1"
+              >custom-theme/</span
+            >
+          </div>
+          <div class="flex pl-4">
+            <span style="color: var(--omarchy-muted);" class="w-8">drwx</span>
+            <span style="color: var(--omarchy-subtle);" class="w-12">user</span>
+            <span style="color: var(--omarchy-muted);" class="w-12">4.0K</span>
+            <span style="color: var(--omarchy-subtle);" class="flex-1"
+              >rose-pine/</span
+            >
+          </div>
+          <div class="flex">
+            <span style="color: var(--omarchy-muted);" class="w-8">-rw-</span>
+            <span style="color: var(--omarchy-subtle);" class="w-12">user</span>
+            <span style="color: var(--omarchy-muted);" class="w-12">2.1K</span>
+            <span style="color: var(--omarchy-fg);" class="flex-1"
+              >README.md</span
+            >
+          </div>
         </div>
+
+        <!-- Bottom status -->
         <div
-          class="file-item flex items-center space-x-2 py-1 px-2"
-          style="color: var(--omarchy-fg); background: var(--omarchy-highlight-med);"
+          class="mt-3 pt-2 border-t"
+          style="border-color: var(--omarchy-overlay);"
         >
-          <span>📁</span>
-          <span>themes</span>
-        </div>
-        <div
-          class="file-item flex items-center space-x-2 py-1 pl-4"
-          style="color: var(--omarchy-subtle);"
-        >
-          <span>🎨</span>
-          <span>catppuccin</span>
-        </div>
-        <div
-          class="file-item flex items-center space-x-2 py-1 pl-4"
-          style="color: var(--omarchy-subtle);"
-        >
-          <span>🎨</span>
-          <span>rose-pine</span>
-        </div>
-        <div
-          class="file-item flex items-center space-x-2 py-1 pl-4"
-          style="color: var(--omarchy-iris);"
-        >
-          <span>🎨</span>
-          <span>custom-theme</span>
-        </div>
-        <div
-          class="file-item flex items-center space-x-2 py-1"
-          style="color: var(--omarchy-fg);"
-        >
-          <span>📁</span>
-          <span>default</span>
-        </div>
-        <div
-          class="file-item flex items-center space-x-2 py-1"
-          style="color: var(--omarchy-fg);"
-        >
-          <span>📄</span>
-          <span>README.md</span>
+          <div class="flex justify-between text-xs">
+            <span style="color: var(--omarchy-muted);">7/12</span>
+            <span style="color: var(--omarchy-subtle);">themes/ [dir]</span>
+            <span style="color: var(--omarchy-muted);">4.0K</span>
+          </div>
         </div>
       </div>
     </div>
@@ -329,122 +473,187 @@
         <span style="color: var(--omarchy-fg);">btop</span>
       </div>
 
-      <!-- Monitor Content -->
-      <div class="monitor-content p-3 text-xs font-mono">
-        <!-- CPU Section -->
-        <div class="section mb-4">
-          <div
-            class="section-title mb-2 font-bold"
-            style="color: var(--omarchy-iris);"
+      <!-- Btop Content -->
+      <div class="btop-content p-2 text-xs font-mono overflow-hidden">
+        <!-- Header -->
+        <div class="btop-header mb-2 flex justify-between items-center">
+          <span style="color: var(--omarchy-iris);" class="font-bold"
+            >btop++</span
           >
-            CPU Usage
+          <span style="color: var(--omarchy-subtle);">v1.2.13</span>
+        </div>
+
+        <!-- CPU Section -->
+        <div class="cpu-section mb-3">
+          <div class="flex justify-between mb-1">
+            <span style="color: var(--omarchy-iris);" class="font-bold"
+              >CPU</span
+            >
+            <span style="color: var(--omarchy-subtle);">
+              {Math.round(
+                cpuCores.reduce((acc, core) => acc + core.usage, 0) /
+                  cpuCores.length,
+              )}%
+            </span>
           </div>
-          <div class="cpu-bars space-y-1">
-            <div class="flex items-center space-x-2">
-              <span style="color: var(--omarchy-subtle);">C0</span>
-              <div
-                class="flex-1 h-2 rounded"
-                style="background: var(--omarchy-overlay);"
-              >
+          <div class="cpu-grid grid grid-cols-2 gap-x-3 gap-y-1 mb-2">
+            {#each cpuCores as core}
+              <div class="flex items-center space-x-1 text-xs">
+                <span style="color: var(--omarchy-subtle);" class="w-5"
+                  >{core.name}</span
+                >
                 <div
-                  class="h-full rounded"
-                  style="width: 45%; background: var(--omarchy-foam);"
-                ></div>
+                  class="flex-1 h-1"
+                  style="background: var(--omarchy-overlay);"
+                >
+                  <div
+                    class="h-full transition-all duration-500"
+                    style="width: {core.usage}%; background: {core.usage > 70
+                      ? 'var(--omarchy-love)'
+                      : core.usage > 40
+                        ? 'var(--omarchy-gold)'
+                        : 'var(--omarchy-foam)'};"
+                  ></div>
+                </div>
+                <span
+                  style="color: var(--omarchy-muted);"
+                  class="text-xs w-8 text-right"
+                >
+                  {Math.round(core.usage)}%
+                </span>
               </div>
-              <span style="color: var(--omarchy-subtle);">45%</span>
-            </div>
-            <div class="flex items-center space-x-2">
-              <span style="color: var(--omarchy-subtle);">C1</span>
-              <div
-                class="flex-1 h-2 rounded"
-                style="background: var(--omarchy-overlay);"
-              >
-                <div
-                  class="h-full rounded"
-                  style="width: 23%; background: var(--omarchy-foam);"
-                ></div>
-              </div>
-              <span style="color: var(--omarchy-subtle);">23%</span>
-            </div>
-            <div class="flex items-center space-x-2">
-              <span style="color: var(--omarchy-subtle);">C2</span>
-              <div
-                class="flex-1 h-2 rounded"
-                style="background: var(--omarchy-overlay);"
-              >
-                <div
-                  class="h-full rounded"
-                  style="width: 67%; background: var(--omarchy-gold);"
-                ></div>
-              </div>
-              <span style="color: var(--omarchy-subtle);">67%</span>
-            </div>
+            {/each}
+          </div>
+          <div class="temp-info text-xs" style="color: var(--omarchy-subtle);">
+            Temp: {Math.round(
+              cpuCores.reduce((acc, core) => acc + core.temp, 0) /
+                cpuCores.length,
+            )}°C
           </div>
         </div>
 
         <!-- Memory Section -->
-        <div class="section mb-4">
-          <div
-            class="section-title mb-2 font-bold"
-            style="color: var(--omarchy-love);"
-          >
-            Memory
+        <div class="memory-section mb-3">
+          <div class="flex justify-between mb-1">
+            <span style="color: var(--omarchy-love);" class="font-bold"
+              >Memory</span
+            >
+            <span style="color: var(--omarchy-subtle);">
+              {memUsage.used.toFixed(1)}G / {memUsage.total}G
+            </span>
           </div>
           <div class="flex items-center space-x-2 mb-1">
-            <span style="color: var(--omarchy-subtle);">Used:</span>
-            <div
-              class="flex-1 h-2 rounded"
-              style="background: var(--omarchy-overlay);"
-            >
+            <div class="flex-1 h-2" style="background: var(--omarchy-overlay);">
               <div
-                class="h-full rounded"
-                style="width: 68%; background: var(--omarchy-love);"
+                class="h-full transition-all duration-500"
+                style="width: {memUsage.percent}%; background: var(--omarchy-love);"
               ></div>
             </div>
-            <span style="color: var(--omarchy-subtle);">6.8G</span>
+            <span style="color: var(--omarchy-subtle);" class="text-xs">
+              {memUsage.percent}%
+            </span>
           </div>
-          <div class="text-xs" style="color: var(--omarchy-subtle);">
-            Total: 16.0G | Free: 9.2G
+          <div class="swap-info">
+            <div class="flex justify-between text-xs">
+              <span style="color: var(--omarchy-subtle);">Swap</span>
+              <span style="color: var(--omarchy-subtle);"
+                >{swapUsage.used}G / {swapUsage.total}G</span
+              >
+            </div>
+            <div class="flex items-center space-x-2">
+              <div
+                class="flex-1 h-1"
+                style="background: var(--omarchy-overlay);"
+              >
+                <div
+                  class="h-full"
+                  style="width: {swapUsage.percent}%; background: var(--omarchy-gold);"
+                ></div>
+              </div>
+              <span style="color: var(--omarchy-subtle);" class="text-xs w-6">
+                {swapUsage.percent}%
+              </span>
+            </div>
           </div>
         </div>
 
-        <!-- Process List -->
-        <div class="section">
-          <div
-            class="section-title mb-2 font-bold"
-            style="color: var(--omarchy-pine);"
-          >
-            Top Processes
+        <!-- Network Section -->
+        <div class="network-section mb-3">
+          <div style="color: var(--omarchy-pine);" class="font-bold mb-1">
+            Network
           </div>
-          <div class="process-list space-y-1 text-xs">
-            <div
-              class="flex justify-between"
-              style="color: var(--omarchy-subtle);"
-            >
-              <span>hyprland</span>
-              <span>12%</span>
+          <div class="flex justify-between text-xs">
+            <div>
+              <span style="color: var(--omarchy-foam);">↑</span>
+              <span style="color: var(--omarchy-subtle);">{networkUp} KB/s</span
+              >
             </div>
-            <div
-              class="flex justify-between"
-              style="color: var(--omarchy-subtle);"
-            >
-              <span>firefox</span>
-              <span>8%</span>
+            <div>
+              <span style="color: var(--omarchy-iris);">↓</span>
+              <span style="color: var(--omarchy-subtle);"
+                >{networkDown} KB/s</span
+              >
             </div>
-            <div
-              class="flex justify-between"
-              style="color: var(--omarchy-iris);"
+          </div>
+        </div>
+
+        <!-- Processes Section -->
+        <div class="processes-section">
+          <div class="flex justify-between mb-1">
+            <span style="color: var(--omarchy-gold);" class="font-bold"
+              >Processes</span
             >
-              <span>theme-builder</span>
-              <span>4%</span>
-            </div>
-            <div
-              class="flex justify-between"
-              style="color: var(--omarchy-subtle);"
+            <span style="color: var(--omarchy-subtle);" class="text-xs"
+              >{processes.length}</span
             >
-              <span>waybar</span>
-              <span>2%</span>
-            </div>
+          </div>
+          <div
+            class="process-header flex text-xs mb-1 pb-1 border-b"
+            style="border-color: var(--omarchy-overlay);"
+          >
+            <span style="color: var(--omarchy-muted);" class="w-12">PID</span>
+            <span style="color: var(--omarchy-muted);" class="w-12">User</span>
+            <span style="color: var(--omarchy-muted);" class="w-12">CPU%</span>
+            <span style="color: var(--omarchy-muted);" class="w-12">MEM%</span>
+            <span style="color: var(--omarchy-muted);" class="flex-1"
+              >Command</span
+            >
+          </div>
+          <div class="process-list space-y-0 text-xs">
+            {#each processes.slice(0, 6) as proc}
+              <div
+                class="flex items-center hover:bg-opacity-20"
+                style="background: rgba(64, 61, 82, 0.2);"
+              >
+                <span style="color: var(--omarchy-subtle);" class="w-12"
+                  >{proc.pid}</span
+                >
+                <span style="color: var(--omarchy-muted);" class="w-12"
+                  >{proc.user}</span
+                >
+                <span
+                  style="color: {proc.cpu > 10
+                    ? 'var(--omarchy-love)'
+                    : proc.cpu > 5
+                      ? 'var(--omarchy-gold)'
+                      : 'var(--omarchy-foam)'};"
+                  class="w-12"
+                >
+                  {proc.cpu.toFixed(1)}
+                </span>
+                <span
+                  style="color: {proc.mem > 10
+                    ? 'var(--omarchy-love)'
+                    : 'var(--omarchy-subtle)'};"
+                  class="w-12"
+                >
+                  {proc.mem.toFixed(1)}
+                </span>
+                <span style="color: var(--omarchy-fg);" class="flex-1 truncate"
+                  >{proc.name}</span
+                >
+              </div>
+            {/each}
           </div>
         </div>
       </div>
@@ -483,6 +692,19 @@
   .cursor {
     animation: blink 1s infinite;
     color: var(--omarchy-iris);
+  }
+
+  .btop-content {
+    font-size: 10px;
+    line-height: 1.2;
+  }
+
+  .cpu-grid {
+    font-size: 9px;
+  }
+
+  .process-list {
+    font-size: 9px;
   }
 
   @keyframes blink {
