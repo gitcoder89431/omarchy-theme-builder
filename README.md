@@ -8,6 +8,18 @@ An interactive, real-time theme builder for the Omarchy Linux desktop environmen
 ![Accessibility](https://img.shields.io/badge/WCAG%202.1-AA-green)
 ![Keyboard Navigation](https://img.shields.io/badge/Keyboard-Navigation-blue)
 
+## 📸 Demo Screenshots
+
+<div align="center">
+
+![Theme Builder Interface](demo_ss_01.png)
+*Theme Builder Interface - Real-time color editing with keyboard navigation*
+
+![Desktop Simulation](demo_ss_02.png)
+*Authentic Omarchy Desktop Simulation - Live preview with btop system monitor*
+
+</div>
+
 ## ✨ Features
 
 ### 🖥️ Authentic Desktop Simulation
