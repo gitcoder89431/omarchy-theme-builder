@@ -1,8 +1,15 @@
 <script>
   import { onMount } from "svelte";
   import { currentTheme, cssVariables } from "../stores/theme.js";
+  import {
+    helpModalOpen,
+    focusManager,
+    createKeyboardHandler,
+    shortcuts,
+  } from "../stores/keyboard.js";
   import NotificationToast from "./NotificationToast.svelte";
   import ThemeControls from "./ThemeControls.svelte";
+  import KeyboardHelpModal from "./KeyboardHelpModal.svelte";
 
   let desktopRef;
   let currentTime = "";
@@ -88,6 +95,26 @@
     currentTime = `${dayName} ${hours}:${minutes}`;
   }
 
+  // Keyboard handler for global shortcuts
+  const handleKeyboard = createKeyboardHandler(shortcuts);
+
+  function handleGlobalKeydown(event) {
+    const result = handleKeyboard(event);
+    if (!result) return;
+
+    const { action } = result;
+
+    switch (action) {
+      case "TOGGLE_HELP":
+        event.preventDefault();
+        helpModalOpen.update((open) => !open);
+        focusManager.announce(
+          $helpModalOpen ? "Help modal opened" : "Help modal closed",
+        );
+        break;
+    }
+  }
+
   onMount(() => {
     // Apply theme variables
     cssVariables.subscribe((variables) => {
@@ -98,6 +125,9 @@
       }
     });
 
+    // Add global keyboard listener
+    document.addEventListener("keydown", handleGlobalKeydown);
+
     // Update time immediately and then every second
     updateTime();
     const timeInterval = setInterval(updateTime, 1000);
@@ -106,10 +136,10 @@
     updateBtopData();
     const btopInterval = setInterval(updateBtopData, 500);
 
-    // Cleanup intervals on component destroy
     return () => {
       clearInterval(timeInterval);
       clearInterval(btopInterval);
+      document.removeEventListener("keydown", handleGlobalKeydown);
     };
   });
 </script>
@@ -254,211 +284,263 @@
     class="main-layout flex h-full gap-2 p-2 relative z-10"
     style="height: calc(100vh - 2rem);"
   >
-    <!-- Left: Terminal File Manager (ranger-style) -->
-    <div
-      class="file-manager w-80 frosted-panel"
-      style="
-        background: rgba(25, 23, 36, 0.9);
-        border: 1px solid rgba(38, 35, 58, 0.5);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-      "
-    >
-      <!-- Ranger Header -->
+    <!-- Left Column: Stacked Panels -->
+    <div class="left-column flex flex-col gap-2 flex-1">
+      <!-- Top Panel: File Manager (ranger-style) -->
       <div
-        class="header h-8 flex items-center px-3 border-b text-xs"
-        style="background: rgba(64, 61, 82, 0.6); border-color: rgba(38, 35, 58, 0.3);"
+        class="file-manager flex-1 frosted-panel"
+        style="
+          background: rgba(25, 23, 36, 0.9);
+          border: 1px solid rgba(38, 35, 58, 0.5);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border-radius: 0;
+        "
       >
-        <svg
-          class="w-3 h-3 mr-2"
-          style="color: var(--omarchy-foam);"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M20,19V7H4V19H20M20,3A2,2 0 0,1 22,5V19A2,2 0 0,1 20,21H4A2,2 0 0,1 2,19V5C2,3.89 2.9,3 4,3H20M13,17V15H18V17H13M9.58,13L5.57,9H8.4L11.7,12.3C12.09,12.69 12.09,13.33 11.7,13.72L8.42,17H5.59L9.58,13Z"
-          />
-        </svg>
-        <span style="color: var(--omarchy-fg);" class="font-mono"
-          >ranger ~/.config/omarchy</span
-        >
-      </div>
-
-      <!-- Ranger Content -->
-      <div class="ranger-content p-2 text-xs font-mono">
-        <!-- Status line -->
+        <!-- Ranger Header -->
         <div
-          class="status-line mb-2 pb-1 border-b"
-          style="border-color: var(--omarchy-overlay);"
+          class="header h-8 flex items-center px-3 border-b text-xs"
+          style="background: rgba(64, 61, 82, 0.6); border-color: rgba(38, 35, 58, 0.3); border-radius: 0;"
         >
-          <div class="flex justify-between">
-            <span style="color: var(--omarchy-subtle);"
-              >/home/user/.config/omarchy</span
-            >
-            <span style="color: var(--omarchy-muted);">12 items</span>
-          </div>
+          <svg
+            class="w-3 h-3 mr-2"
+            style="color: var(--omarchy-foam);"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M20,19V7H4V19H20M20,3A2,2 0 0,1 22,5V19A2,2 0 0,1 20,21H4A2,2 0 0,1 2,19V5C2,3.89 2.9,3 4,3H20M13,17V15H18V17H13M9.58,13L5.57,9H8.4L11.7,12.3C12.09,12.69 12.09,13.33 11.7,13.72L8.42,17H5.59L9.58,13Z"
+            />
+          </svg>
+          <span style="color: var(--omarchy-fg);" class="font-mono"
+            >ranger ~/.config/omarchy</span
+          >
         </div>
 
-        <!-- File listing -->
-        <div class="file-list space-y-0">
-          <div class="flex">
-            <span style="color: var(--omarchy-muted);" class="w-8">drwx</span>
-            <span style="color: var(--omarchy-subtle);" class="w-12">user</span>
-            <span style="color: var(--omarchy-muted);" class="w-12">4.0K</span>
-            <span style="color: var(--omarchy-iris);" class="flex-1">../</span>
+        <!-- Ranger Content -->
+        <div class="ranger-content p-2 text-xs font-mono">
+          <!-- Status line -->
+          <div
+            class="status-line mb-2 pb-1 border-b"
+            style="border-color: var(--omarchy-overlay);"
+          >
+            <div class="flex justify-between">
+              <span style="color: var(--omarchy-subtle);"
+                >/home/user/.config/omarchy</span
+              >
+              <span style="color: var(--omarchy-muted);">12 items</span>
+            </div>
           </div>
-          <div class="flex">
-            <span style="color: var(--omarchy-muted);" class="w-8">drwx</span>
-            <span style="color: var(--omarchy-subtle);" class="w-12">user</span>
-            <span style="color: var(--omarchy-muted);" class="w-12">4.0K</span>
-            <span style="color: var(--omarchy-foam);" class="flex-1">bin/</span>
-          </div>
-          <div class="flex">
-            <span style="color: var(--omarchy-muted);" class="w-8">drwx</span>
-            <span style="color: var(--omarchy-subtle);" class="w-12">user</span>
-            <span style="color: var(--omarchy-muted);" class="w-12">4.0K</span>
-            <span style="color: var(--omarchy-foam);" class="flex-1"
-              >config/</span
+
+          <!-- File listing -->
+          <div class="file-list space-y-0">
+            <div class="flex">
+              <span style="color: var(--omarchy-muted);" class="w-8">drwx</span>
+              <span style="color: var(--omarchy-subtle);" class="w-12"
+                >user</span
+              >
+              <span style="color: var(--omarchy-muted);" class="w-12">4.0K</span
+              >
+              <span style="color: var(--omarchy-iris);" class="flex-1">../</span
+              >
+            </div>
+            <div class="flex">
+              <span style="color: var(--omarchy-muted);" class="w-8">drwx</span>
+              <span style="color: var(--omarchy-subtle);" class="w-12"
+                >user</span
+              >
+              <span style="color: var(--omarchy-muted);" class="w-12">4.0K</span
+              >
+              <span style="color: var(--omarchy-foam);" class="flex-1"
+                >bin/</span
+              >
+            </div>
+            <div class="flex">
+              <span style="color: var(--omarchy-muted);" class="w-8">drwx</span>
+              <span style="color: var(--omarchy-subtle);" class="w-12"
+                >user</span
+              >
+              <span style="color: var(--omarchy-muted);" class="w-12">4.0K</span
+              >
+              <span style="color: var(--omarchy-foam);" class="flex-1"
+                >config/</span
+              >
+            </div>
+            <div
+              class="flex bg-opacity-40"
+              style="background: var(--omarchy-highlight-med);"
             >
+              <span style="color: var(--omarchy-muted);" class="w-8">drwx</span>
+              <span style="color: var(--omarchy-subtle);" class="w-12"
+                >user</span
+              >
+              <span style="color: var(--omarchy-muted);" class="w-12">4.0K</span
+              >
+              <span style="color: var(--omarchy-fg);" class="flex-1"
+                >themes/</span
+              >
+            </div>
+            <div class="flex pl-4">
+              <span style="color: var(--omarchy-muted);" class="w-8">drwx</span>
+              <span style="color: var(--omarchy-subtle);" class="w-12"
+                >user</span
+              >
+              <span style="color: var(--omarchy-muted);" class="w-12">4.0K</span
+              >
+              <span style="color: var(--omarchy-subtle);" class="flex-1"
+                >catppuccin/</span
+              >
+            </div>
+            <div class="flex pl-4">
+              <span style="color: var(--omarchy-muted);" class="w-8">drwx</span>
+              <span style="color: var(--omarchy-subtle);" class="w-12"
+                >user</span
+              >
+              <span style="color: var(--omarchy-muted);" class="w-12">4.0K</span
+              >
+              <span style="color: var(--omarchy-iris);" class="flex-1"
+                >custom-theme/</span
+              >
+            </div>
+            <div class="flex pl-4">
+              <span style="color: var(--omarchy-muted);" class="w-8">drwx</span>
+              <span style="color: var(--omarchy-subtle);" class="w-12"
+                >user</span
+              >
+              <span style="color: var(--omarchy-muted);" class="w-12">4.0K</span
+              >
+              <span style="color: var(--omarchy-subtle);" class="flex-1"
+                >rose-pine/</span
+              >
+            </div>
+            <div class="flex">
+              <span style="color: var(--omarchy-muted);" class="w-8">-rw-</span>
+              <span style="color: var(--omarchy-subtle);" class="w-12"
+                >user</span
+              >
+              <span style="color: var(--omarchy-muted);" class="w-12">2.1K</span
+              >
+              <span style="color: var(--omarchy-fg);" class="flex-1"
+                >README.md</span
+              >
+            </div>
+          </div>
+
+          <!-- Bottom status -->
+          <div
+            class="mt-3 pt-2 border-t"
+            style="border-color: var(--omarchy-overlay);"
+          >
+            <div class="flex justify-between text-xs">
+              <span style="color: var(--omarchy-muted);">7/12</span>
+              <span style="color: var(--omarchy-subtle);">themes/ [dir]</span>
+              <span style="color: var(--omarchy-muted);">4.0K</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Panel: Terminal -->
+      <div
+        class="terminal flex-1 frosted-panel"
+        style="
+          background: rgba(25, 23, 36, 0.9);
+          border: 1px solid rgba(38, 35, 58, 0.5);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border-radius: 0;
+        "
+      >
+        <!-- Terminal Header -->
+        <div
+          class="header h-8 flex items-center px-3 border-b text-xs"
+          style="background: rgba(64, 61, 82, 0.6); border-color: rgba(38, 35, 58, 0.3); border-radius: 0;"
+        >
+          <svg
+            class="w-3 h-3 mr-2"
+            style="color: var(--omarchy-iris);"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M20,19V7H4V19H20M20,3A2,2 0 0,1 22,5V19A2,2 0 0,1 20,21H4A2,2 0 0,1 2,19V5C2,3.89 2.9,3 4,3H20M13,17V15H18V17H13M9.58,13L5.57,9H8.4L11.7,12.3C12.09,12.69 12.09,13.33 11.7,13.72L8.42,17H5.59L9.58,13Z"
+            />
+          </svg>
+        </div>
+
+        <!-- Terminal Content -->
+        <div class="terminal-content p-4 text-xs font-mono">
+          <div class="terminal-line mb-1">
+            <span style="color: var(--omarchy-iris);">❯</span>
+            <span style="color: var(--omarchy-fg);"> neofetch</span>
+          </div>
+
+          <!-- Hardware Section -->
+          <div class="hardware-section mb-3">
+            <div class="border-section">
+              <div style="color: var(--omarchy-subtle);">
+                ┌──────────────────────Hardware─────────────────────┐
+              </div>
+              <div style="color: var(--omarchy-fg); margin-left: 1ch;">
+                <div>PC: ThinkStation P340</div>
+                <div>│ ├: AMD Ryzen 7 5800X (16) @ 4.70 GHz</div>
+                <div>│ ├: NVIDIA GeForce RTX 3070 @ 1.73 GHz</div>
+                <div>│ ├󱄄: 2560x1440 @ 144 Hz in 27" [External]</div>
+                <div>│ ├󰋊: 47.32 GiB / 512.00 GiB (9%) - ext4</div>
+                <div>│ ├: 12.8 GiB / 32.0 GiB (40%)</div>
+                <div>└ └󰓡 : 2.1 GiB / 8.00 GiB (26%)</div>
+              </div>
+              <div style="color: var(--omarchy-subtle);">
+                └───────────────────────────────────────────────────┘
+              </div>
+            </div>
+          </div>
+
+          <div class="terminal-line mb-1">
+            <span style="color: var(--omarchy-iris);">❯</span>
+            <span style="color: var(--omarchy-fg);">
+              cd ~/.config/omarchy/themes</span
+            >
+          </div>
+          <div class="terminal-line mb-1">
+            <span style="color: var(--omarchy-iris);">❯</span>
+            <span style="color: var(--omarchy-fg);"> ls -la</span>
           </div>
           <div
-            class="flex bg-opacity-40"
-            style="background: var(--omarchy-highlight-med);"
+            class="terminal-output mb-2"
+            style="color: var(--omarchy-subtle);"
           >
-            <span style="color: var(--omarchy-muted);" class="w-8">drwx</span>
-            <span style="color: var(--omarchy-subtle);" class="w-12">user</span>
-            <span style="color: var(--omarchy-muted);" class="w-12">4.0K</span>
-            <span style="color: var(--omarchy-fg);" class="flex-1">themes/</span
-            >
+            <div>drwxr-xr-x 5 user user 4096 Jun 25 21:24 .</div>
+            <div>drwxr-xr-x 8 user user 4096 Jun 25 21:20 ..</div>
+            <div>drwxr-xr-x 2 user user 4096 Jun 25 21:24 catppuccin</div>
+            <div style="color: var(--omarchy-iris);">
+              drwxr-xr-x 2 user user 4096 Jun 25 21:24 custom-theme
+            </div>
+            <div>drwxr-xr-x 2 user user 4096 Jun 25 21:20 rose-pine</div>
           </div>
-          <div class="flex pl-4">
-            <span style="color: var(--omarchy-muted);" class="w-8">drwx</span>
-            <span style="color: var(--omarchy-subtle);" class="w-12">user</span>
-            <span style="color: var(--omarchy-muted);" class="w-12">4.0K</span>
-            <span style="color: var(--omarchy-subtle);" class="flex-1"
-              >catppuccin/</span
-            >
-          </div>
-          <div class="flex pl-4">
-            <span style="color: var(--omarchy-muted);" class="w-8">drwx</span>
-            <span style="color: var(--omarchy-subtle);" class="w-12">user</span>
-            <span style="color: var(--omarchy-muted);" class="w-12">4.0K</span>
-            <span style="color: var(--omarchy-iris);" class="flex-1"
-              >custom-theme/</span
-            >
-          </div>
-          <div class="flex pl-4">
-            <span style="color: var(--omarchy-muted);" class="w-8">drwx</span>
-            <span style="color: var(--omarchy-subtle);" class="w-12">user</span>
-            <span style="color: var(--omarchy-muted);" class="w-12">4.0K</span>
-            <span style="color: var(--omarchy-subtle);" class="flex-1"
-              >rose-pine/</span
-            >
-          </div>
-          <div class="flex">
-            <span style="color: var(--omarchy-muted);" class="w-8">-rw-</span>
-            <span style="color: var(--omarchy-subtle);" class="w-12">user</span>
-            <span style="color: var(--omarchy-muted);" class="w-12">2.1K</span>
-            <span style="color: var(--omarchy-fg);" class="flex-1"
-              >README.md</span
-            >
-          </div>
-        </div>
-
-        <!-- Bottom status -->
-        <div
-          class="mt-3 pt-2 border-t"
-          style="border-color: var(--omarchy-overlay);"
-        >
-          <div class="flex justify-between text-xs">
-            <span style="color: var(--omarchy-muted);">7/12</span>
-            <span style="color: var(--omarchy-subtle);">themes/ [dir]</span>
-            <span style="color: var(--omarchy-muted);">4.0K</span>
+          <div class="terminal-line">
+            <span style="color: var(--omarchy-iris);">❯</span>
+            <span class="cursor">_</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Center: Terminal -->
+    <!-- Right Column: System Monitor -->
     <div
-      class="terminal flex-1 frosted-panel"
-      style="
-        background: rgba(25, 23, 36, 0.9);
-        border: 1px solid rgba(38, 35, 58, 0.5);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-      "
-    >
-      <!-- Terminal Header -->
-      <div
-        class="header h-8 flex items-center px-3 border-b text-xs"
-        style="background: rgba(64, 61, 82, 0.6); border-color: rgba(38, 35, 58, 0.3);"
-      >
-        <svg
-          class="w-3 h-3 mr-2"
-          style="color: var(--omarchy-iris);"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M20,19V7H4V19H20M20,3A2,2 0 0,1 22,5V19A2,2 0 0,1 20,21H4A2,2 0 0,1 2,19V5C2,3.89 2.9,3 4,3H20M13,17V15H18V17H13M9.58,13L5.57,9H8.4L11.7,12.3C12.09,12.69 12.09,13.33 11.7,13.72L8.42,17H5.59L9.58,13Z"
-          />
-        </svg>
-      </div>
-
-      <!-- Terminal Content -->
-      <div class="terminal-content p-4 text-xs font-mono">
-        <div class="terminal-line mb-1">
-          <span style="color: var(--omarchy-iris);">❯</span>
-          <span style="color: var(--omarchy-fg);">
-            cd ~/.config/omarchy/themes</span
-          >
-        </div>
-        <div class="terminal-line mb-1">
-          <span style="color: var(--omarchy-iris);">❯</span>
-          <span style="color: var(--omarchy-fg);"> ls -la</span>
-        </div>
-        <div class="terminal-output mb-2" style="color: var(--omarchy-subtle);">
-          <div>drwxr-xr-x 5 user user 4096 Jun 25 21:24 .</div>
-          <div>drwxr-xr-x 8 user user 4096 Jun 25 21:20 ..</div>
-          <div>drwxr-xr-x 2 user user 4096 Jun 25 21:24 catppuccin</div>
-          <div style="color: var(--omarchy-iris);">
-            drwxr-xr-x 2 user user 4096 Jun 25 21:24 custom-theme
-          </div>
-          <div>drwxr-xr-x 2 user user 4096 Jun 25 21:20 rose-pine</div>
-        </div>
-        <div class="terminal-line mb-1">
-          <span style="color: var(--omarchy-iris);">❯</span>
-          <span style="color: var(--omarchy-fg);">
-            omarchy-theme preview custom-theme</span
-          >
-        </div>
-        <div class="terminal-output mb-2" style="color: var(--omarchy-foam);">
-          <div>✓ Loading theme: custom-theme</div>
-          <div>✓ Applying colors...</div>
-          <div>✓ Theme preview active</div>
-        </div>
-        <div class="terminal-line">
-          <span style="color: var(--omarchy-iris);">❯</span>
-          <span class="cursor">_</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Right: System Monitor -->
-    <div
-      class="monitor w-96 frosted-panel"
+      class="monitor flex-1 frosted-panel"
       style="
         background: rgba(31, 29, 46, 0.85);
         border: 1px solid rgba(38, 35, 58, 0.5);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
+        border-radius: 0;
       "
     >
       <!-- Monitor Header -->
       <div
         class="header h-8 flex items-center px-3 border-b text-xs"
-        style="background: rgba(64, 61, 82, 0.4); border-color: rgba(38, 35, 58, 0.3);"
+        style="background: rgba(64, 61, 82, 0.4); border-color: rgba(38, 35, 58, 0.3); border-radius: 0;"
       >
         <svg
           class="w-3 h-3 mr-2"
@@ -496,25 +578,30 @@
               )}%
             </span>
           </div>
-          <div class="cpu-grid grid grid-cols-2 gap-x-3 gap-y-1 mb-2">
+          <div
+            class="cpu-grid grid grid-cols-2 gap-x-1 gap-y-0 mb-2 text-xs font-mono"
+          >
             {#each cpuCores as core}
-              <div class="flex items-center space-x-1 text-xs">
-                <span style="color: var(--omarchy-subtle);" class="w-5"
+              <div class="flex items-center space-x-1">
+                <span style="color: var(--omarchy-subtle);" class="w-6"
                   >{core.name}</span
                 >
-                <div
-                  class="flex-1 h-1"
-                  style="background: var(--omarchy-overlay);"
+                <span
+                  class="flex-1 font-mono text-xs"
+                  style="color: {core.usage > 70
+                    ? 'var(--omarchy-love)'
+                    : 'var(--omarchy-foam)'}; letter-spacing: -0.5px;"
                 >
-                  <div
-                    class="h-full transition-all duration-500"
-                    style="width: {core.usage}%; background: {core.usage > 70
-                      ? 'var(--omarchy-love)'
-                      : core.usage > 40
-                        ? 'var(--omarchy-gold)'
-                        : 'var(--omarchy-foam)'};"
-                  ></div>
-                </div>
+                  {#if core.usage > 87.5}⣿⣿⣿⣿⣿⣿⣿⣿
+                  {:else if core.usage > 75}⣿⣿⣿⣿⣿⣿⡇⠀
+                  {:else if core.usage > 62.5}⣿⣿⣿⣿⣿⠀⠀⠀
+                  {:else if core.usage > 50}⣿⣿⣿⣿⠀⠀⠀⠀
+                  {:else if core.usage > 37.5}⣿⣿⣿⠀⠀⠀⠀⠀
+                  {:else if core.usage > 25}⣿⣿⠀⠀⠀⠀⠀⠀
+                  {:else if core.usage > 12.5}⣿⠀⠀⠀⠀⠀⠀⠀
+                  {:else}⡀⠀⠀⠀⠀⠀⠀⠀
+                  {/if}
+                </span>
                 <span
                   style="color: var(--omarchy-muted);"
                   class="text-xs w-8 text-right"
@@ -532,6 +619,24 @@
           </div>
         </div>
 
+        <!-- Software Section -->
+        <div class="software-section mb-3">
+          <div class="border-section">
+            <div style="color: var(--omarchy-subtle);">
+              ┌──────────────────────Software─────────────────────┐
+            </div>
+            <div style="color: var(--omarchy-fg); margin-left: 1ch;">
+              <div>󰣇 OS: Arch Linux x86_64</div>
+              <div>│ ├: Linux 6.16.1-arch1-1</div>
+              <div>│ ├󰏖: 858 (pacman)</div>
+              <div>└ └: bash 5.3.3</div>
+            </div>
+            <div style="color: var(--omarchy-subtle);">
+              └───────────────────────────────────────────────────┘
+            </div>
+          </div>
+        </div>
+
         <!-- Memory Section -->
         <div class="memory-section mb-3">
           <div class="flex justify-between mb-1">
@@ -543,12 +648,30 @@
             </span>
           </div>
           <div class="flex items-center space-x-2 mb-1">
-            <div class="flex-1 h-2" style="background: var(--omarchy-overlay);">
-              <div
-                class="h-full transition-all duration-500"
-                style="width: {memUsage.percent}%; background: var(--omarchy-love);"
-              ></div>
-            </div>
+            <span
+              class="flex-1 font-mono text-xs"
+              style="color: {memUsage.percent > 80
+                ? 'var(--omarchy-love)'
+                : 'var(--omarchy-foam)'}; letter-spacing: -0.5px;"
+            >
+              {#if memUsage.percent > 93.75}⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+              {:else if memUsage.percent > 87.5}⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀
+              {:else if memUsage.percent > 81.25}⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀
+              {:else if memUsage.percent > 75}⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀
+              {:else if memUsage.percent > 68.75}⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀
+              {:else if memUsage.percent > 62.5}⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀
+              {:else if memUsage.percent > 56.25}⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀
+              {:else if memUsage.percent > 50}⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀
+              {:else if memUsage.percent > 43.75}⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀
+              {:else if memUsage.percent > 37.5}⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+              {:else if memUsage.percent > 31.25}⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+              {:else if memUsage.percent > 25}⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+              {:else if memUsage.percent > 18.75}⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+              {:else if memUsage.percent > 12.5}⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+              {:else if memUsage.percent > 6.25}⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+              {:else}⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+              {/if}
+            </span>
             <span style="color: var(--omarchy-subtle);" class="text-xs">
               {memUsage.percent}%
             </span>
@@ -561,15 +684,22 @@
               >
             </div>
             <div class="flex items-center space-x-2">
-              <div
-                class="flex-1 h-1"
-                style="background: var(--omarchy-overlay);"
+              <span
+                class="flex-1 font-mono text-xs"
+                style="color: {swapUsage.percent > 50
+                  ? 'var(--omarchy-love)'
+                  : 'var(--omarchy-gold)'}; letter-spacing: -0.5px;"
               >
-                <div
-                  class="h-full"
-                  style="width: {swapUsage.percent}%; background: var(--omarchy-gold);"
-                ></div>
-              </div>
+                {#if swapUsage.percent > 87.5}⣿⣿⣿⣿⣿⣿⣿⣿
+                {:else if swapUsage.percent > 75}⣿⣿⣿⣿⣿⣿⡇⠀
+                {:else if swapUsage.percent > 62.5}⣿⣿⣿⣿⣿⠀⠀⠀
+                {:else if swapUsage.percent > 50}⣿⣿⣿⣿⠀⠀⠀⠀
+                {:else if swapUsage.percent > 37.5}⣿⣿⣿⠀⠀⠀⠀⠀
+                {:else if swapUsage.percent > 25}⣿⣿⠀⠀⠀⠀⠀⠀
+                {:else if swapUsage.percent > 12.5}⣿⠀⠀⠀⠀⠀⠀⠀
+                {:else}⡀⠀⠀⠀⠀⠀⠀⠀
+                {/if}
+              </span>
               <span style="color: var(--omarchy-subtle);" class="text-xs w-6">
                 {swapUsage.percent}%
               </span>
@@ -577,22 +707,18 @@
           </div>
         </div>
 
-        <!-- Network Section -->
-        <div class="network-section mb-3">
-          <div style="color: var(--omarchy-pine);" class="font-bold mb-1">
-            Network
-          </div>
-          <div class="flex justify-between text-xs">
-            <div>
-              <span style="color: var(--omarchy-foam);">↑</span>
-              <span style="color: var(--omarchy-subtle);">{networkUp} KB/s</span
-              >
+        <!-- Uptime Section -->
+        <div class="uptime-section mb-3">
+          <div class="border-section">
+            <div style="color: var(--omarchy-subtle);">
+              ┌────────────────────Uptime / Age───────────────────┐
             </div>
-            <div>
-              <span style="color: var(--omarchy-iris);">↓</span>
-              <span style="color: var(--omarchy-subtle);"
-                >{networkDown} KB/s</span
-              >
+            <div style="color: var(--omarchy-fg); margin-left: 1ch;">
+              <div>OS Age : 9 days</div>
+              <div>Uptime : 3 mins</div>
+            </div>
+            <div style="color: var(--omarchy-subtle);">
+              └───────────────────────────────────────────────────┘
             </div>
           </div>
         </div>
@@ -661,7 +787,12 @@
   </div>
 
   <!-- Theme Controls -->
-  <ThemeControls />
+  <div id="theme-controls">
+    <ThemeControls />
+  </div>
+
+  <!-- Keyboard Help Modal -->
+  <KeyboardHelpModal />
 
   <!-- Notifications -->
   <NotificationToast />
@@ -687,6 +818,17 @@
     box-shadow:
       0 8px 32px rgba(0, 0, 0, 0.3),
       0 0 0 1px rgba(255, 255, 255, 0.05);
+    border-radius: 0;
+  }
+
+  .left-column {
+    min-height: 0; /* Allow flex children to shrink */
+  }
+
+  .left-column .file-manager,
+  .left-column .terminal {
+    min-height: 45%; /* Ensure minimum height for each panel */
+    max-height: 55%; /* Prevent one panel from dominating */
   }
 
   .cursor {
@@ -737,14 +879,21 @@
       gap: 8px;
     }
 
-    .file-manager,
-    .monitor {
+    .left-column {
       width: 100%;
-      height: 33.33%;
+      flex-direction: row;
+      height: 50%;
     }
 
-    .terminal {
-      height: 33.33%;
+    .left-column .file-manager,
+    .left-column .terminal {
+      flex: 1;
+      height: 100%;
+    }
+
+    .monitor {
+      width: 100%;
+      height: 50%;
     }
   }
 </style>

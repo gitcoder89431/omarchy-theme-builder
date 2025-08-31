@@ -1,24 +1,36 @@
 # 🎨 Omarchy Theme Builder
 
-An interactive, real-time theme builder for the Omarchy Linux desktop environment. Create beautiful desktop themes with instant visual feedback, just like Realtime Colors but for your entire desktop.
+An interactive, real-time theme builder for the Omarchy Linux desktop environment. Create beautiful desktop themes with instant visual feedback and **full keyboard accessibility**, just like Realtime Colors but for your entire desktop.
 
 ![Omarchy Theme Builder](https://img.shields.io/badge/Omarchy-Theme%20Builder-blueviolet)
 ![SvelteKit](https://img.shields.io/badge/SvelteKit-FF3E00?logo=svelte&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-38B2AC?logo=tailwind-css&logoColor=white)
+![Accessibility](https://img.shields.io/badge/WCAG%202.1-AA-green)
+![Keyboard Navigation](https://img.shields.io/badge/Keyboard-Navigation-blue)
 
 ## ✨ Features
 
-### 🖥️ High-Fidelity Desktop Simulation
-- Realistic Omarchy/Hyprland desktop preview in your browser
-- Simulated windows: terminals, code editors, system monitors
-- Interactive panels with workspaces, system stats, and notifications
-- Live updating UI components that reflect real desktop behavior
+### 🖥️ Authentic Desktop Simulation
+- **Pixel-perfect Omarchy/Hyprland desktop** preview in your browser
+- **Realistic system monitoring** with btop using authentic braille progress bars
+- **Sharp 90° corners** and ASCII-style borders matching real terminals
+- **Interactive panels**: file manager (ranger-style), terminal, and system monitor
+- **Live system stats** with animated CPU cores, memory usage, and process lists
+
+### ⌨️ Full Keyboard Navigation (WCAG 2.1 AA)
+- **Complete keyboard accessibility** - navigate entirely without a mouse
+- **Smart focus management** with visible indicators and focus trapping
+- **Keyboard shortcuts** for all major functions (press `?` for help)
+- **Screen reader support** with proper ARIA labels and announcements
+- **Skip links** and semantic markup for assistive technologies
+- **Test suite** available at `/keyboard-test` to verify navigation
 
 ### 🎨 Real-Time Theme Editing
 - **Instant Visual Feedback**: Changes appear immediately across all components
 - **Color Palette Editor**: Customize background, foreground, accent, and semantic colors
-- **Icon Theme Selection**: Choose from popular Linux icon themes
-- **Preset Themes**: Quick-start with Rose Pine, Tokyo Night, Catppuccin, Nord, and more
+- **Quick Theme Access**: Number keys (1-7) for instant preset switching
+- **Keyboard Color Picking**: Navigate and edit colors entirely with keyboard
+- **Preset Themes**: Rose Pine, Tokyo Night, Catppuccin, Nord, Everforest, Gruvbox, and more
 
 ### 📦 Complete Theme Export
 Generate a ready-to-use theme package containing:
@@ -34,12 +46,13 @@ Generate a ready-to-use theme package containing:
 - **SvelteKit** - Fast, reactive framework
 - **Tailwind CSS** - Utility-first styling
 - **JSZip** - Theme export functionality
-- **Responsive Design** - Works on desktop and mobile
+- **Custom Focus Manager** - Advanced keyboard navigation system
+- **Responsive Design** - Works on desktop, tablet, and mobile
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 
 ### Installation
@@ -65,14 +78,58 @@ npm run build
 npm run preview
 ```
 
+## ⌨️ Keyboard Navigation
+
+This theme builder is fully keyboard accessible! Here's how to get started:
+
+### Essential Shortcuts
+| Key | Action |
+|-----|--------|
+| `Tab` | Enable keyboard mode & navigate |
+| `T` | Toggle theme controls |
+| `?` or `H` | Show keyboard shortcuts help |
+| `E` | Export current theme |
+| `1-7` | Quick theme presets |
+| `Enter`/`Space` | Activate focused element |
+| `Escape` | Close modals/panels |
+
+### Navigation Flow
+1. Press `Tab` to enable keyboard navigation mode
+2. Use `Tab` and `Shift+Tab` to move between elements
+3. Press `T` to open theme controls
+4. Navigate colors with `Tab`, press `Enter` to edit
+5. Use number keys for quick theme switching
+6. Press `E` to export your theme
+
+**Full documentation**: See [KEYBOARD_NAVIGATION.md](KEYBOARD_NAVIGATION.md) for complete shortcuts and accessibility features.
+
 ## 🎯 How It Works
 
 1. **Open the Theme Builder** - Load the app in your browser
-2. **Customize Colors** - Click the theme controls in the bottom-right corner
-3. **See Live Changes** - Watch your desktop simulation update in real-time
-4. **Try Presets** - Quickly apply popular themes like Rose Pine or Tokyo Night
-5. **Export Theme** - Download a ZIP file with all configuration files
-6. **Apply to Omarchy** - Extract and apply the theme to your real desktop
+2. **Enable Keyboard Mode** - Press `Tab` to start navigating
+3. **Customize Colors** - Press `T` or click theme controls in the bottom-right
+4. **See Live Changes** - Watch your authentic desktop simulation update in real-time
+5. **Try Presets** - Use number keys 1-7 for instant theme switching
+6. **Export Theme** - Press `E` or click export for a complete theme package
+7. **Apply to Omarchy** - Extract and apply the theme to your real desktop
+
+## 🏗️ Desktop Layout
+
+The simulation features an authentic three-panel layout matching real Omarchy setups:
+
+```
+┌─────────────────┬─────────────────────────────────┐
+│                 │                                 │
+│   File Manager  │                                 │
+│   (ranger)      │         System Monitor          │
+│                 │         (btop)                  │
+├─────────────────┤                                 │
+│                 │                                 │
+│   Terminal      │                                 │
+│   (neofetch)    │                                 │
+│                 │                                 │
+└─────────────────┴─────────────────────────────────┘
+```
 
 ## 🎨 Theme Structure
 
@@ -102,58 +159,104 @@ omarchy-my-theme-theme/
 ```
 src/
 ├── lib/
-│   ├── components/          # Svelte components
-│   │   ├── Desktop.svelte   # Main desktop simulator
-│   │   ├── TopPanel.svelte  # System panel
-│   │   ├── TerminalWindow.svelte
-│   │   ├── CodeEditor.svelte
-│   │   ├── SystemMonitor.svelte
-│   │   ├── ThemeControls.svelte
+│   ├── components/              # Svelte components
+│   │   ├── Desktop.svelte       # Main desktop simulator
+│   │   ├── TopPanel.svelte      # System panel with keyboard nav
+│   │   ├── ThemeControls.svelte # Fully keyboard accessible controls
+│   │   ├── KeyboardHelpModal.svelte # Shortcuts help
 │   │   └── NotificationToast.svelte
 │   ├── stores/
-│   │   └── theme.js         # Theme state management
+│   │   ├── theme.js             # Theme state management
+│   │   └── keyboard.js          # Keyboard navigation system
 │   └── utils/
-│       └── themeExport.js   # Theme export logic
-├── routes/                  # SvelteKit routes
-└── app.css                  # Global styles with CSS variables
+│       └── themeExport.js       # Theme export logic
+├── routes/
+│   ├── keyboard-test/           # Accessibility test suite
+│   └── +page.svelte             # Main app
+└── app.css                      # Global styles with keyboard focus
 ```
 
 ### Key Design Principles
 
-- **Real-time Updates**: All theme changes are applied instantly using Svelte stores
+- **Accessibility First**: WCAG 2.1 AA compliant with comprehensive keyboard navigation
+- **Real-time Updates**: All theme changes applied instantly using Svelte stores
+- **Authentic Simulation**: Pixel-perfect recreation of real Omarchy desktop elements
 - **CSS Variables**: Dynamic theming through CSS custom properties
 - **Component Isolation**: Each desktop component is self-contained and reactive
-- **Responsive Design**: Works across different screen sizes
-- **Accessibility**: Proper ARIA labels, keyboard navigation, and contrast considerations
+- **Progressive Enhancement**: Works with mouse, keyboard, and screen readers
+
+## 🧪 Testing
+
+### Keyboard Navigation Test Suite
+Visit `/keyboard-test` to run our comprehensive accessibility test suite:
+
+- ✅ Tab navigation flow
+- ✅ Focus trapping in modals
+- ✅ Keyboard shortcuts functionality
+- ✅ Screen reader announcements
+- ✅ Skip links navigation
+
+### Manual Testing Checklist
+- [ ] All interactive elements focusable with Tab
+- [ ] Keyboard shortcuts work as documented
+- [ ] Screen reader announces changes
+- [ ] High contrast mode supported
+- [ ] Theme export functions correctly
+
+## 🤝 Contributing
+
+We welcome contributions! This project is perfect for:
+
+### 🎨 **Theme Designers**
+- Add new theme presets
+- Improve color palette selections
+- Create theme variations
+
+### ⌨️ **Accessibility Experts**
+- Enhance screen reader support
+- Test with assistive technologies
+- Improve keyboard navigation flow
+
+### 💻 **Frontend Developers**
+- Add new desktop components
+- Improve animations and transitions
+- Optimize performance
+
+### 🐧 **Linux Enthusiasts**
+- Add support for other desktop environments
+- Expand export format options
+- Test on various distributions
+
+### Getting Started
+1. **Fork the repository**
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Test keyboard navigation**: Visit `/keyboard-test`
+4. **Commit changes**: Use conventional commits
+5. **Push to branch**: `git push origin feature/amazing-feature`
+6. **Open a Pull Request**
+
+### Development Guidelines
+- Maintain keyboard accessibility in all new features
+- Test with screen readers (NVDA, JAWS, VoiceOver)
+- Follow existing code patterns and naming conventions
+- Add proper ARIA labels and descriptions
+- Update keyboard navigation docs for new shortcuts
 
 ## 🎨 Inspiration
 
 This project draws inspiration from:
-- [Realtime Colors](https://realtimecolors.com) - For the real-time preview concept
-- [Rose Pine](https://rosepinetheme.com) - For color palette design
-- Omarchy Desktop - The target Linux environment
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to:
-
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Commit changes**: `git commit -m 'Add amazing feature'`
-4. **Push to branch**: `git push origin feature/amazing-feature`
-5. **Open a Pull Request**
-
-### Development Guidelines
-
-- Use conventional commits for clear history
-- Add JSDoc comments for complex functions
-- Test theme export functionality thoroughly
-- Ensure responsive design works on mobile
-- Follow existing code style and patterns
+- **Omarchy Desktop** - The beautiful target Linux environment
+- **btop++** - For authentic system monitoring aesthetics
+- **Accessibility community** - For inclusive design principles
 
 ## 🐛 Troubleshooting
 
 ### Common Issues
+
+**Keyboard navigation not working?**
+- Press `Tab` to enable keyboard mode
+- Check that focus indicators are visible
+- Try refreshing the page if focus gets stuck
 
 **Theme export not working?**
 - Ensure your browser supports the File API
@@ -165,10 +268,10 @@ Contributions are welcome! Please feel free to:
 - Ensure CSS custom properties are supported (modern browsers)
 - Check browser console for any JavaScript errors
 
-**Performance issues?**
-- Reduce animation frequency if needed
-- Close other browser tabs to free up memory
-- Use Chrome or Firefox for best performance
+**Screen reader issues?**
+- Ensure ARIA live regions are working
+- Check that announcements are being made on theme changes
+- Try different screen reader software
 
 ## 📄 License
 
@@ -176,13 +279,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- **Omarchy Project** - For the amazing Linux desktop environment
-- **Rose Pine Community** - For color palette inspiration  
-- **SvelteKit Team** - For the excellent framework
-- **All Contributors** - For making this project better
+- **Omarchy Project** - For creating an amazing Linux desktop environment
+- **SvelteKit Team** - For the excellent reactive framework
+- **Accessibility community** - For guidance on inclusive design principles
+- **btop++ developers** - For the incredible system monitor that inspired our simulation
+- **All Contributors** - For making this project better every day
 
 ---
 
-**Made with ❤️ for the Omarchy community**
+**Made with ❤️ and ♿ for the Omarchy community**
 
-*Want to contribute or report issues? Visit our [GitHub repository](https://github.com/your-username/omarchy-theme-builder)!*
+*Ready to build your perfect theme? [Get started now!](https://github.com/your-username/omarchy-theme-builder)*
+
+### 🚀 **[Live Demo](https://github.com/gitcoder89431/omarchy-theme-builder)** | 📖 **[Keyboard Guide](KEYBOARD_NAVIGATION.md)** | 🧪 **[Test Suite](https://github.com/gitcoder89431/omarchy-theme-builder/keyboard-test)**
